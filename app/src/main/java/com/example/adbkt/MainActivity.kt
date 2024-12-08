@@ -1,18 +1,12 @@
 package com.example.adbkt
 
-import android.app.Application
 import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.adbkt.ui.theme.ADBKTTheme
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.adbkt.utils.ADB
 
 class MainActivity : ComponentActivity() {
@@ -22,34 +16,37 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val adb = ADB.getInstance(applicationContext)
-        setContent {
-            ADBKTTheme {
-                Scaffold( modifier = Modifier.fillMaxSize() ) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+        // Create a ConstraintLayout (or use any other layout as the root)
+        val layout = ConstraintLayout(this)
+        layout.layoutParams = ConstraintLayout.LayoutParams(
+            ConstraintLayout.LayoutParams.MATCH_PARENT,
+            ConstraintLayout.LayoutParams.MATCH_PARENT
+        )
+
+        // Create a Button programmatically
+        val button = Button(this).apply {
+            text = "Click Me"
+            id = View.generateViewId() // Ensure unique ID
+            layoutParams = ConstraintLayout.LayoutParams(
+                ConstraintLayout.LayoutParams.WRAP_CONTENT,
+                ConstraintLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                marginStart = 32
+                topMargin = 32
             }
         }
-        adb.debug("Starting.....");
-        //adb.pair("5555")
-        //adb.initServer();
-    }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+        layout.addView(button)
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ADBKTTheme {
-        Greeting("Android")
+        button.setOnClickListener {
+            Toast.makeText(this, "Accessibility On...", Toast.LENGTH_SHORT).show()
+            adb.sendToShellProcess("settings put secure enabled_accessibility_services com.example.adbkt/com.example.adbkt.MyAccessibilityService");
+        }
+
+        setContentView(layout)
+
+        adb.debug("MainActivity Running.....");
     }
 }
